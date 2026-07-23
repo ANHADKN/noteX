@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Portfolio Chatbot</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #chat-window { width: 450px; height: 600px; background: white; border-radius: 15px; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        #header { background: #1a1a1a; color: white; padding: 20px; border-radius: 15px 15px 0 0; text-align: center; font-weight: bold; }
+        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { padding: 12px 16px; border-radius: 15px; max-width: 80%; line-height: 1.4; }
+        .user { background: #007bff; color: white; align-self: flex-end; }
+        .bot { background: #e9e9eb; color: #1c1e21; align-self: flex-start; }
+        #input-area { padding: 20px; border-top: 1px solid #eee; display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border: 1px +solid #ddd; border-radius: 25px; outline: none; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div id="chat-window">
+    <div id="header">Portfolio Assistant</div>
+    <div id="messages">
+        <div class="bubble bot">Hi! I'm an AI trained on this portfolio. What would you like to know?</div>
+    </div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Ask a question...">
+        <button onclick="send()">Send</button>
+    </div>
+</div>
+
+<script>
+    async function send() {
+        const input = document.getElementById('user-input');
+        const msgDiv = document.getElementById('messages');
+        const text = input.value.trim();
+        
+        if (!text) return;
+
+        // User Message
+        msgDiv.innerHTML += `<div class="bubble user">${text}</div>`;
+        input.value = '';
+        msgDiv.scrollTop = msgDiv.scrollHeight;
+
+        // Fetch from Flask
+        try {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await response.json();
+            msgDiv.innerHTML += `<div class="bubble bot">${data.response}</div>`;
+        } catch (error) {
+            msgDiv.innerHTML += `<div class="bubble bot">Sorry, I'm having trouble connecting to the server.</div>`;
+        }
+        
+        msgDiv.scrollTop = msgDiv.scrollHeight;
+    }
+
+    // Allow "Enter" key to send
+    document.getElementById('user-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') send();
+    });
+</script>
+
+</body>
+</html>
